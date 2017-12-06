@@ -10,6 +10,14 @@ the [Libvirt provider](https://github.com/vagrant-libvirt/vagrant-libvirt) based
 * tar
 * gzip, bzip2 or xz
 
+Tested with:
+  * RHEL 7.3 and 7.4 KVM guest images
+  * Vagrant 2.0.0
+  * vagrant-libvirt 0.0.40
+
+Note: Some older versions of Vagrant and/or vagrant-libvirt do not merge the settings in the box Vagrantfile correctly, causing
+an error when Vagrant tries to log into a machine via ssh.
+
 ## Usage
 
 **create-box.sh** *RHEL_CLOUD_IMAGE* *VAGRANT_BOX_TARBALL*
