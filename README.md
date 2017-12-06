@@ -22,7 +22,10 @@ an error when Vagrant tries to log into a machine via ssh.
 
 **create-box.sh** *RHEL_CLOUD_IMAGE* *VAGRANT_BOX_TARBALL*
 
-The tarball is compressed with **bzip2** if *VAGRANT_BOX_TARBALL* ends in `.bz2`, with **xz** if it ends in `.xz` and with **gzip** otherwise.
+The tarball is compressed with:
+* bzip2 if *VAGRANT_BOX_TARBALL* ends in `.bz2`
+* xz if *VAGRANT_BOX_TARBALL* ends in `.xz`
+* gzip otherwise
 
 ## Example
 
