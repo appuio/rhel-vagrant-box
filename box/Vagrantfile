@@ -1,14 +1,43 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+require 'libvirt'
+
 # Derive box id of format <box>_<version>_<provider> from path of this Vagrantfile
 # which looks like: /home/<user>/.vagrant.d/boxes/<box>/<version>/<provider>/Vagrantfile
 box_id = __FILE__.split(File::SEPARATOR)[-4, 3].join('_')
+cloud_init_image = "#{box_id}_vagrant_cloud_init.iso"
 
-# Copy cloud-init image to ensure QEMU/KVM can read it
-cloud_init_dest = "/var/tmp/#{box_id}_vagrant_cloud_init.iso"
-if not File.exist?(cloud_init_dest)
-  FileUtils.cp(File.expand_path('../cloud-init.iso', __FILE__), cloud_init_dest)
+cloud_init_src = File.expand_path('../cloud-init.iso', __FILE__)
+cloud_init_size = File.size(cloud_init_src)
+
+conn = Libvirt::open("qemu:///system")
+pool = conn.lookup_storage_pool_by_name("default")
+begin
+  cloud_init_dest = pool.lookup_volume_by_name(cloud_init_image).path
+rescue
+  storage_vol_xml = %Q(
+    <volume>
+      <name>#{cloud_init_image}</name>
+      <allocation>0</allocation>
+      <capacity>#{cloud_init_size}</capacity>
+    </volume>)
+
+  vol = pool.create_volume_xml(storage_vol_xml)
+  stream = nil
+  begin
+    cloud_init_dest = vol.path
+    stream = conn.stream
+    vol.upload(stream, 0, cloud_init_size)
+    stream.send(IO.read(cloud_init_src))
+    stream.finish
+  rescue
+    vol.delete
+    raise
+  ensure
+    stream.free if stream
+    vol.free if vol
+  end
 end
 
 Vagrant.configure("2") do |config|
